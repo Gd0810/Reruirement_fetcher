@@ -17,6 +17,20 @@ COMMON_PACKAGE_NAMES = {
     "yaml": "PyYAML",
 }
 
+IGNORED_DIRECTORY_NAMES = {
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "env",
+    "site-packages",
+    "venv",
+}
+
 
 @dataclass
 class FileDependencyReport:
@@ -43,7 +57,18 @@ def choose_folder_with_dialog() -> str | None:
 
 
 def iter_python_files(folder: Path) -> list[Path]:
-    return sorted(path for path in folder.rglob("*.py") if path.is_file())
+    python_files: list[Path] = []
+
+    for path in folder.rglob("*.py"):
+        if not path.is_file():
+            continue
+
+        if any(part.lower() in IGNORED_DIRECTORY_NAMES for part in path.parts):
+            continue
+
+        python_files.append(path)
+
+    return sorted(python_files)
 
 
 def get_local_module_names(folder: Path, py_files: list[Path]) -> set[str]:
